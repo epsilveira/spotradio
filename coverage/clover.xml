@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1647368493086" clover="3.2.0">
-  <project timestamp="1647368493086" name="All files">
+<coverage generated="1647370759830" clover="3.2.0">
+  <project timestamp="1647370759830" name="All files">
     <metrics statements="45" coveredstatements="45" conditionals="20" coveredconditionals="20" methods="9" coveredmethods="9" elements="74" coveredelements="74" complexity="0" loc="45" ncloc="45" packages="1" files="5" classes="5"/>
     <file name="config.js" path="C:\JSExpert6\SpotifyRadio\server\config.js">
       <metrics statements="4" coveredstatements="4" conditionals="2" coveredconditionals="2" methods="0" coveredmethods="0"/>
@@ -11,13 +11,13 @@
     </file>
     <file name="controller.js" path="C:\JSExpert6\SpotifyRadio\server\controller.js">
       <metrics statements="2" coveredstatements="2" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="2"/>
-      <line num="5" count="3" type="stmt"/>
+      <line num="5" count="2" type="stmt"/>
       <line num="9" count="1" type="stmt"/>
     </file>
     <file name="routes.js" path="C:\JSExpert6\SpotifyRadio\server\routes.js">
       <metrics statements="29" coveredstatements="29" conditionals="18" coveredconditionals="18" methods="4" coveredmethods="4"/>
-      <line num="14" count="2" type="stmt"/>
-      <line num="15" count="2" type="stmt"/>
+      <line num="14" count="1" type="stmt"/>
+      <line num="15" count="1" type="stmt"/>
       <line num="18" count="8" type="stmt"/>
       <line num="20" count="8" type="cond" truecount="4" falsecount="0"/>
       <line num="21" count="1" type="stmt"/>
@@ -59,8 +59,8 @@
     </file>
     <file name="util.js" path="C:\JSExpert6\SpotifyRadio\server\util.js">
       <metrics statements="2" coveredstatements="2" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
-      <line num="3" count="2" type="stmt"/>
-      <line num="13" count="2" type="stmt"/>
+      <line num="3" count="1" type="stmt"/>
+      <line num="13" count="1" type="stmt"/>
     </file>
   </project>
 </coverage>
