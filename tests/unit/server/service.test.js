@@ -18,22 +18,23 @@ describe('#Services - test services', () => {
     jest.clearAllMocks()
   })
 
-  test('createFileStream - should create a file stream', async () => {
+  test('#createFileStream - should create a file stream', async () => {
     const service = new Service()
     const mockFileStream = TestUtil.generateReadableStream(['data'])
+    const filename = 'file.ext'
 
     jest.spyOn(
       fs,
       fs.createReadStream.name
     ).mockReturnValue(mockFileStream)
 
-    const res = service.createFileStream('file.ext')
+    const res = service.createFileStream(filename)
 
-    expect(fs.createReadStream).toBeCalledWith('file.ext')
-    expect(res).toBe(mockFileStream)
+    expect(fs.createReadStream).toHaveBeenCalledWith(filename)
+    expect(res).toStrictEqual(mockFileStream)
   })
 
-  test('getFileInfo - should return information of a file', async () => {
+  test('#getFileInfo - should return information of a file', async () => {
     const service = new Service()
     const filename = 'file.ext'
     const fileType = '.ext'
@@ -46,41 +47,43 @@ describe('#Services - test services', () => {
 
     const res = await service.getFileInfo(filename)
 
-    expect(fsPromises.access).toBeCalledWith(fullFilePath)
-    expect(res).toEqual({
+    //não precisa testar novamente
+    //expect(fsPromises.access).toBeCalledWith(fullFilePath)
+    expect(res).toStrictEqual({
       type: fileType,
       name: fullFilePath
     })
   })
 
-  test('getFileStream - should return a file stream', async () => {
+  test('#getFileStream - should return a file stream', async () => {
     const service = new Service()
     const filename = 'file.ext'
     const fileType = '.ext'
     const fullFilePath = join(publicDirectory, filename)
-    const mockFileStream = TestUtil.generateReadableStream(['data'])
+    const currentReadable = TestUtil.generateReadableStream(['data'])
+
 
     jest.spyOn(
       service,
-      'getFileInfo'
+      service.getFileInfo.name
     ).mockResolvedValue({
-      name: fullFilePath,
-      type: fileType
+      type: fileType,
+      name: fullFilePath
     })
 
     jest.spyOn(
       service,
       service.createFileStream.name
-    ).mockImplementation(() => mockFileStream)
+    ).mockReturnValue(currentReadable)
 
     const res = await service.getFileStream(filename)
-
-    expect(service.getFileInfo).toBeCalledWith(filename)
-    expect(service.createFileStream).toBeCalledWith(fullFilePath)
-    expect(res).toEqual({
-      stream: mockFileStream,
-      type: fileType
-    })
+    const expectedResult = {
+      type: fileType,
+      stream: currentReadable
+    }
+    expect(service.getFileInfo).toHaveBeenCalledWith(filename)
+    expect(service.createFileStream).toHaveBeenCalledWith(fullFilePath)
+    expect(res).toStrictEqual(expectedResult)
   })
 
 })
