@@ -5,3 +5,5 @@ server
   server = responsável por criar o servidor (mas não instancia)
   index = instancia o servidor e expõe para a web (lado da infraestrutura)
   config = tudo que for estático do projeto
+
+  // 1:19:43
