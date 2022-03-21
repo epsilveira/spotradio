@@ -83,7 +83,7 @@ export class Service {
   broadCast() {
     return new Writable({
       write: (chunk, enc, cb) => {
-        for (const [key, stream] of this.clientStreams) {
+        for (const [id, stream] of this.clientStreams) {
           // se o cliente desconectou, não devemos mais enviar dados para ele
           if (stream.writableEnded) {
             this.clientStreams.delete(id)
