@@ -4,7 +4,18 @@ heroku login
 git init
 npx gitignore node
 git add . && git commit -m "deploy"
+// cria o app para enviar na heroku
 heroku apps:create spotify-radio-etd
 git remote -v
+// add container
 heroku stack:set container
+// push na heroku
 git push heroku master
+// abre a url no navegador
+heroku open
+// ver logs
+heroku logs -t -a spotify-radio-etd
+
+// remover
+heroku apps:delete
+rm -rf .git
