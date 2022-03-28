@@ -6,4 +6,8 @@ server
   index = instancia o servidor e expõe para a web (lado da infraestrutura)
   config = tudo que for estático do projeto
 
-  // 1:19:43
+cliente
+  service = tudo que é regra de negócio ou processamento
+  controller = é o intermédio entre a view e o service
+  view = tudo que é elemento HTML (visualização)
+  index = Factory = quem inicializa tudo  
