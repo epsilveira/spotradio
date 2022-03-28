@@ -1,0 +1,10 @@
+arquivo heroku.yml
+npm i -g heroku
+heroku login
+git init
+npx gitignore node
+git add . && git commit -m "deploy"
+heroku apps:create spotify-radio-etd
+git remote -v
+heroku stack:set container
+git push heroku master
