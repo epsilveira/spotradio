@@ -6,7 +6,6 @@ import { Transform } from 'stream'
 import { setTimeout } from 'timers/promises'
 import fs from 'fs'
 import config from './../../../server/config.js'
-import { exec } from 'child_process'
 
 const {
   dir: {
@@ -26,11 +25,20 @@ describe('API E2E Suite Test', () => {
     result: 'ok'
   })
   const possibleCommands = {
+    applause: 'applause',
+    audience: 'audience',
+    boo: 'boo',
+    fart: 'fart',
+    laugh: 'laugh',
     start: 'start',
     stop: 'stop',
   }
 
   let testServer = superTest(Server())
+  beforeEach(() => {
+    jest.resetAllMocks()
+    jest.clearAllMocks()
+  })
 
   function pipAndReadStreamData(stream, onChunk) {
     const transform = new Transform({
@@ -168,6 +176,51 @@ describe('API E2E Suite Test', () => {
 
       expect(buffer).toBeInstanceOf(Buffer)
       expect(buffer.length).toBeGreaterThan(1000)
+      server.kill()
+    })
+
+    test('sending all commands at once together should not break the API', async () => {
+      const server = await getTestServer()
+      const sender = commandSender(server.testServer)
+      await sender.send(possibleCommands.start)
+
+      const onChunk = jest.fn()
+      pipAndReadStreamData(
+        server.testServer.get(`/stream`),
+        onChunk
+      )
+      const commands = Reflect.ownKeys(possibleCommands)
+        .filter(cmd => cmd !== possibleCommands.start || cmd !== possibleCommands.stop)
+
+      for (const command of commands) {
+        await sender.send(command)
+        await setTimeout(RETENTION_DATA_PERIOD)
+      }
+
+      await sender.send(possibleCommands.stop)
+
+      const [
+        [buffer]
+      ] = onChunk.mock.calls
+      const atLeastCallCount = 5
+      expect(onChunk.mock.calls.length).toBeGreaterThan(atLeastCallCount)
+      expect(buffer).toBeInstanceOf(Buffer)
+      expect(buffer.length).toBeGreaterThan(1000)
+      server.kill()
+    })
+
+    test('it shouldnt break sendind commands to the API if theres no audio playing', async () => {
+      const server = await getTestServer()
+      const sender = commandSender(server.testServer)
+
+      await setTimeout(RETENTION_DATA_PERIOD)
+
+      await sender.send(possibleCommands.stop)
+      await sender.send(possibleCommands.applause)
+      await sender.send(possibleCommands.stop)
+
+      await setTimeout(RETENTION_DATA_PERIOD)
+
       server.kill()
     })
 

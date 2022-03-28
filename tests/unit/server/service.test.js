@@ -277,4 +277,138 @@ describe('#Services - test suite for core processing', () => {
     )
   })
 
+  test('#readFxByName - it should return the song', async () => {
+    const service = new Service()
+    const inputFx = 'fx01'
+    const fxOnDisk = 'fx01.mp3'
+
+    jest.spyOn(
+      fsPromises,
+      fsPromises.readdir.name
+    ).mockResolvedValue([fxOnDisk])
+
+    const path = await service.readFxByName(inputFx)
+    const expectedPath = `${fxDirectory}/${fxOnDisk}`
+
+    expect(path).toStrictEqual(expectedPath)
+    expect(fsPromises.readdir).toHaveBeenCalledWith(fxDirectory)
+  })
+
+  test('#readFxByName - it should reject when song wasnt found', async () => {
+    const service = new Service()
+    const inputFx = 'fx01'
+
+    jest.spyOn(
+      fsPromises,
+      fsPromises.readdir.name
+    ).mockResolvedValue([])
+
+    expect(service.readFxByName(inputFx)).rejects.toEqual(`the song ${inputFx} wasn't found!`)
+    expect(fsPromises.readdir).toHaveBeenCalledWith(fxDirectory)
+  })
+
+
+  test('#appendFxStream', async () => {
+    const currentFx = 'fx.mp3'
+    const service = new Service()
+    service.throttleTransform = new PassThrough()
+    service.currentReadable = TestUtil.generateReadableStream(['data'])
+
+    const mergedThrottleTransformMock = new PassThrough()
+    const expectedFirstCallResult = 'ok1'
+    const expectedSecondCallResult = 'ok2'
+    const writableBroadCaster = TestUtil.generateWritableStream(() => { })
+
+    jest.spyOn(
+      streamAsync,
+      streamAsync.pipeline.name
+    ).mockResolvedValueOnce(expectedFirstCallResult)
+      .mockResolvedValueOnce(expectedSecondCallResult)
+
+    jest.spyOn(
+      service,
+      service.broadCast.name
+    ).mockReturnValue(writableBroadCaster)
+
+    jest.spyOn(
+      service,
+      service.mergeAudioStreams.name
+    ).mockReturnValue(mergedThrottleTransformMock)
+
+    jest.spyOn(
+      mergedThrottleTransformMock,
+      "removeListener"
+    ).mockReturnValue()
+
+    jest.spyOn(
+      service.throttleTransform,
+      "pause"
+    )
+
+    jest.spyOn(
+      service.currentReadable,
+      "unpipe"
+    ).mockImplementation()
+
+    service.appendFxStream(currentFx)
+
+    expect(service.throttleTransform.pause).toHaveBeenCalled()
+    expect(service.currentReadable.unpipe).toHaveBeenCalledWith(service.throttleTransform)
+
+    service.throttleTransform.emit('unpipe')
+
+    const [call1, call2] = streamAsync.pipeline.mock.calls
+    const [resultCall1, resultCall2] = streamAsync.pipeline.mock.results
+    const [throttleTransformCall1, broadCastCall1] = call1
+
+    expect(throttleTransformCall1).toBeInstanceOf(Throttle)
+    expect(broadCastCall1).toStrictEqual(writableBroadCaster)
+
+    const [result1, result2] = await Promise.all([resultCall1.value, resultCall2.value])
+
+    expect(result1).toStrictEqual(expectedFirstCallResult)
+    expect(result2).toStrictEqual(expectedSecondCallResult)
+
+    const [mergedStreamCall2, throttleTransformCall2] = call2
+    expect(mergedStreamCall2).toStrictEqual(mergedThrottleTransformMock)
+    expect(throttleTransformCall2).toBeInstanceOf(Throttle)
+    expect(service.currentReadable.removeListener).toHaveBeenCalled()
+
+
+  })
+
+  test('#mergeAudioStreams', async () => {
+    const currentFx = 'fx.mp3'
+    const service = new Service()
+    const currentReadable = TestUtil.generateReadableStream(['data'])
+    const spawnResponse = getSpawnResponse({
+      stdout: '1k',
+      stdin: 'myFx'
+    })
+
+    jest.spyOn(
+      service,
+      service._executeSoxCommand.name
+    ).mockReturnValue(spawnResponse)
+
+    jest.spyOn(
+      streamAsync,
+      streamAsync.pipeline.name
+    ).mockResolvedValue()
+
+    const result = service.mergeAudioStreams(currentFx, currentReadable)
+    const [call1, call2] = streamAsync.pipeline.mock.calls
+    const [readableCall, stdinCall] = call1
+
+    expect(readableCall).toStrictEqual(currentReadable)
+    expect(stdinCall).toStrictEqual(spawnResponse.stdin)
+
+    const [stdoutCall, transformStream] = call2
+
+    expect(stdoutCall).toStrictEqual(spawnResponse.stdout)
+    expect(transformStream).toBeInstanceOf(PassThrough)
+    expect(result).toBeInstanceOf(PassThrough)
+
+  })
+
 })
